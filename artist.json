@@ -1,0 +1,15 @@
+{
+	"success": true,
+	"rows": [
+		{"name": "Miles Davis", "genre": "Jazz"},
+		{"name": "Beck", "genre": "Rock"},
+		{"name": "Lucious Jackson", "genre": "Rock"},
+		{"name": "Jack Johnson", "genre": "Rock"},
+		{"name": "Horace Silver", "genre": "Jazz"},
+		{"name": "Atlas Genius", "genre": "Rock"},
+		{"name": "Jamiroqui", "genre": "Rock"},
+		{"name": "Skye", "genre": "Rock"},
+		{"name": "Morcheeba", "genre": "Rock"},
+		{"name": "Josh Ritter", "genre": "Folk"}
+	]    
+}
