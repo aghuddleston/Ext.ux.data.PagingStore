@@ -268,10 +268,10 @@ Ext.define('Ext.ux.data.PagingStore', {
 					}
 
 					if (options.callback) {
-                        options.callback.call(options.scope || me, r, options, true);
+						options.callback.call(options.scope || me, r, options, true);
                     }
                 }, 1, me);
-                return me;
+				return me;
 			}
 
 			me.proxy.read(operation, me.onProxyLoad, me);
