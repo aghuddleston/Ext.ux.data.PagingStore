@@ -1,4 +1,4 @@
-StartTest({
+StartTest({ 
   alsoPreload: [
     '../../../../extjs-4.1.1/ux/data/PagingStore.js'
   ]
