@@ -147,17 +147,12 @@ StartTest({
 				t.is(myStore.allData.length, 0, 'All records removed');
 				t.is(myStore.getTotalCount(), 0, 'Records via getTotalCount');
 
-				console.log('about to call next ArrayPagingStore');
 				next();
 			}
 		},
 		{
 			action: function(next) {
-				console.log("about to loadRecords");
-				console.log(myData);
-				console.log(myStore);
 				myStore.loadRecords(myData);
-				console.log("after loadRecords");
 				t.is(myStore.data.length, 3, 'Store is paged');
 				t.is(myStore.allData.length, 10, 'All data is there');
 				t.is(myStore.getTotalCount(), 10, 'Total count looks at allData');
