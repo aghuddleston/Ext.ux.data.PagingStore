@@ -8,31 +8,31 @@
  * options but no longer part of params.
  * Example remote store:
  *     var myStore = Ext.create('Ext.ux.data.PagingStore', {
-         model: 'Artist',
-         pageSize: 3,
- 	     lastOptions: {start: 0, limit: 3, page: 1},
- 	     proxy: {
- 			type: 'ajax',
- 			url: 'url/goes/here',
- 			reader: {
- 				type: 'json',
- 				root: 'rows'
- 			}
- 		}
-     });
+             model: 'Artist',
+             pageSize: 3,
+             lastOptions: {start: 0, limit: 3, page: 1},
+             proxy: {
+               type: 'ajax',
+               url: 'url/goes/here',
+               reader: {
+                 type: 'json',
+                 root: 'rows'
+               }
+             }
+       });
 
  * Example local store:
  *    var myStore = Ext.create('Ext.ux.data.PagingStore', {
-         model: 'Artist',
-         pageSize: 3,
-         proxy: {
-             type: 'memory',
-             reader: {
-                 type: 'array'
-             }
-         },
- 	    data: data
-     });
+            model: 'Artist',
+            pageSize: 3,
+            proxy: {
+              type: 'memory',
+              reader: {
+                type: 'array'
+              }
+            },
+            data: data
+      });
  * To force a reload, delete store.lastParams.
  */
 Ext.define('Ext.ux.data.PagingStore', {
@@ -50,20 +50,20 @@ Ext.define('Ext.ux.data.PagingStore', {
 	 * @param {Ext.data.Operation} options
 	 * @return {boolean}
 	 */
-	isPaging: function(options) {
-		 var me = this,
-			 start = options.start,
-			 limit = options.limit,
-			 page = options.page,
-			 currentParams;
+	isPaging: function (options) {
+		var me = this,
+			start = options.start,
+			limit = options.limit,
+			page = options.page,
+			currentParams;
 
-		 if ((typeof start != 'number') || (typeof limit != 'number')) {
-			 delete me.start;
-			 delete me.limit;
-			 delete me.page;
-			 me.lastParams = options.params;
-			 return false;
-		 }
+		if ((typeof start != 'number') || (typeof limit != 'number')) {
+			delete me.start;
+			delete me.limit;
+			delete me.page;
+			me.lastParams = options.params;
+			return false;
+		}
 
 		me.start = start;
 		me.limit = limit;
@@ -119,8 +119,8 @@ Ext.define('Ext.ux.data.PagingStore', {
 	},
 
 	loadRecords: function (records, options) {
-		var me     = this,
-			i      = 0,
+		var me = this,
+			i = 0,
 			length = records.length,
 			start,
 			addRecords,
@@ -179,7 +179,7 @@ Ext.define('Ext.ux.data.PagingStore', {
 		me.fireEvent('refresh', me);
 	},
 
-    loadData: function(data, append) {
+	loadData: function (data, append) {
 		var me = this,
 			model = me.model,
 			length = data.length,
@@ -251,27 +251,27 @@ Ext.define('Ext.ux.data.PagingStore', {
 
 			me.loading = true;
 			pagingOptions = Ext.apply({}, options);
-            if (me.isPaging(pagingOptions)) {
-				Ext.Function.defer(function() {
-                    if (me.allData) {
-                        me.data = me.allData;
-                        delete me.allData;
-                    }
-                    me.applyPaging();
-                    me.fireEvent("datachanged", me);
+			if (me.isPaging(pagingOptions)) {
+				Ext.Function.defer(function () {
+					if (me.allData) {
+						me.data = me.allData;
+						delete me.allData;
+					}
+					me.applyPaging();
+					me.fireEvent("datachanged", me);
 					me.fireEvent('refresh', me);
-                    var r = [].concat(me.data.items);
+					var r = [].concat(me.data.items);
 					me.loading = false;
-                    me.fireEvent("load", me, r, true);
+					me.fireEvent("load", me, r, true);
 					if (me.hasListeners.read) {
 						me.fireEvent('read', me, r, true);
 					}
 
 					if (options.callback) {
-                        options.callback.call(options.scope || me, r, options, true);
-                    }
-                }, 1, me);
-                return me;
+						options.callback.call(options.scope || me, r, options, true);
+					}
+				}, 1, me);
+				return me;
 			}
 
 			me.proxy.read(operation, me.onProxyLoad, me);
@@ -327,8 +327,8 @@ Ext.define('Ext.ux.data.PagingStore', {
 			range,
 			ln,
 			i;
-		if (me.remoteSort) {
 
+		if (me.remoteSort) {
 			// For a buffered Store, we have to clear the prefetch cache since it is keyed by the index within the dataset.
 			// Then we must prefetch the new page 1, and when that arrives, reload the visible part of the Store
 			// via the guaranteedrange event
@@ -362,21 +362,21 @@ Ext.define('Ext.ux.data.PagingStore', {
 		return this.allData ? this.allData.getCount() : this.totalCount || 0;
 	},
 
-    //inherit docs
-    getNewRecords: function() {
+	//inherit docs
+	getNewRecords: function () {
 		if (this.allData) {
 			return this.allData.filterBy(this.filterNew).items;
 		}
-        return this.data.filterBy(this.filterNew).items;
-    },
+		return this.data.filterBy(this.filterNew).items;
+	},
 
-    //inherit docs
-    getUpdatedRecords: function() {
+	//inherit docs
+	getUpdatedRecords: function () {
 		if (this.allData) {
 			return this.allData.filterBy(this.filterUpdated).items;
 		}
-        return this.data.filterBy(this.filterUpdated).items;
-    },
+		return this.data.filterBy(this.filterUpdated).items;
+	},
 
 	remove: function (records, /* private */ isMove) {
 		if (!Ext.isArray(records)) {
@@ -542,6 +542,7 @@ Ext.define('Ext.ux.data.PagingStore', {
 
 		me.snapshot = me.snapshot || me.allData.clone() || me.data.clone();
 		me.data = me.queryBy(fn, scope || me);
+		me.applyPaging();
 		me.fireEvent('datachanged', me);
 		me.fireEvent('refresh', me);
 	},
@@ -554,7 +555,7 @@ Ext.define('Ext.ux.data.PagingStore', {
 
 	collect: function (dataIndex, allowNull, bypassFilter) {
 		var me = this,
-			data = (bypassFilter === true && (me.snapshot || me.allData)) ? (me.snapshot || me.allData) : me.data;
+				data = (bypassFilter === true && (me.snapshot || me.allData)) ? (me.snapshot || me.allData) : me.data;
 
 		return data.collect(dataIndex, 'data', allowNull);
 	},

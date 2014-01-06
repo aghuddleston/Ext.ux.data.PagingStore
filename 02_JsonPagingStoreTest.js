@@ -63,8 +63,6 @@ StartTest({
 		},
 		{
 			action: function(next) {
-				console.log('testing after next');
-
 				t.is(myStore.data.length, 3, 'Store is paged');
 				t.is(myStore.allData.length, 10, 'All data is there');
 
@@ -94,6 +92,43 @@ StartTest({
 				myStore.filter('genre', 'Rock');
 				t.is(myStore.data.length, 3, '3 records on current page');
 				t.is(myStore.allData.length, 8, '8 recs left in filter');
+
+				myStore.clearFilter();
+				t.is(myStore.data.length, 3, '3 records on current page');
+				t.is(myStore.allData.length, 12, 'All data is there');
+
+				myStore.loadPage(1);
+				t.is(myStore.currentPage, 1, 'Go back to page 1');
+				t.is(myStore.data.length, 3, '3 records on current page');
+				t.is(myStore.allData.length, 12, 'All data is there');
+
+				myStore.filterBy(function(rec,id){
+					var genre = rec.get('genre');
+					return (genre === 'Rock');
+				});
+				t.is(myStore.currentPage, 1, 'Current page is 1');
+				t.is(myStore.data.length, 3, '3 records on current page');
+				t.is(myStore.allData.length, 8, '8 recs left in filter');
+				t.is(myStore.getTotalCount(), 8, 'Records via getTotalCount');
+				rec = myStore.first();
+				t.is(rec.get('name'), 'Atlas Genius', 'filtered first record on page 1');
+
+				myStore.nextPage();
+				next();
+			}
+		},
+		{
+			action: function(next) {
+				setTimeout(next, 50);
+			}
+		},
+		{
+			action: function(next) {
+				t.is(myStore.currentPage, 2, 'Back to page 2');
+				t.is(myStore.data.length, 3, '3 records on current page');
+				t.is(myStore.allData.length, 8, 'All data is there');
+				rec = myStore.first();
+				t.is(rec.get('name'), 'Jamiroqui', 'filtered first record on page 2');
 
 				myStore.clearFilter();
 				t.is(myStore.data.length, 3, '3 records on current page');
