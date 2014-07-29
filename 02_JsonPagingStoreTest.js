@@ -1,7 +1,4 @@
 StartTest({
-  alsoPreload: [
-    '../../../../extjs-4.1.1/ux/data/PagingStore.js'
-  ]
 }, function(t) {
 
     Ext.define('Artist', {
@@ -18,7 +15,7 @@ StartTest({
 	    lastOptions: {start: 0, limit: 3, page: 1},
 	    proxy: {
 			type: 'ajax',
-			url: './ux/artist.json',
+			url: 'artist.json',
 			reader: {
 				type: 'json',
 				root: 'rows'

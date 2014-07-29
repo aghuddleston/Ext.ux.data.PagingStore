@@ -1,7 +1,4 @@
-StartTest({ 
-  alsoPreload: [
-    '../../../../extjs-4.1.1/ux/data/PagingStore.js'
-  ]
+StartTest({
 }, function(t) {
 
     Ext.define('Artist', {
@@ -34,7 +31,7 @@ StartTest({
                 type: 'array'
             }
         },
-	    data: myData
+	      data: myData
     });
 
 	var rec, recs;
@@ -169,10 +166,5 @@ StartTest({
 			}
 		}
 	);
-
-
-
-//	setTimeout(function() {
-//	}, 100);
 
 });
