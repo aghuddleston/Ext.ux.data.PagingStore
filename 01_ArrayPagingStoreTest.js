@@ -119,52 +119,64 @@ StartTest({
 				setTimeout(next, 50);
 			}
 		},
-		{
-			action: function(next) {
-				t.is(myStore.currentPage, 2, 'Back to page 2');
-				t.is(myStore.data.length, 3, '3 records on current page');
-				t.is(myStore.allData.length, 8, 'All data is there');
-				rec = myStore.first();
-				t.is(rec.get('name'), 'Jamiroqui', 'filtered first record on page 2');
+      {
+        action: function (next) {
+          t.is(myStore.currentPage, 2, 'Back to page 2');
+          t.is(myStore.data.length, 3, '3 records on current page');
+          t.is(myStore.allData.length, 8, 'All data is there');
+          rec = myStore.first();
+          t.is(rec.get('name'), 'Jamiroqui', 'filtered first record on page 2');
 
-				myStore.clearFilter();
-				t.is(myStore.data.length, 3, '3 records on current page');
-				t.is(myStore.allData.length, 12, 'All data is there');
+          myStore.clearFilter();
+          t.is(myStore.data.length, 3, '3 records on current page');
+          t.is(myStore.allData.length, 12, 'All data is there');
 
-				rec = myStore.findRecord('name', 'Jack Johnson');
-				myStore.remove(rec);
-				t.is(myStore.data.length, 2, 'Records added to current page');
-				t.is(myStore.getCount(), 2, 'Records via count');
-				t.is(myStore.allData.length, 11, 'All data is there');
-				t.is(myStore.getTotalCount(), 11, 'Records via getTotalCount');
+          rec = myStore.findRecord('name', 'Jack Johnson');
+          myStore.remove(rec);
+          t.is(myStore.data.length, 2, 'Records added to current page');
+          t.is(myStore.getCount(), 2, 'Records via count');
+          t.is(myStore.allData.length, 11, 'All data is there');
+          t.is(myStore.getTotalCount(), 11, 'Records via getTotalCount');
 
-				myStore.removeAll();
-				t.is(myStore.data.length, 0, 'Current page records removed');
-				t.is(myStore.getCount(), 0, 'Records via count');
-				t.is(myStore.allData.length, 0, 'All records removed');
-				t.is(myStore.getTotalCount(), 0, 'Records via getTotalCount');
+          myStore.removeAll();
+          t.is(myStore.data.length, 0, 'Current page records removed');
+          t.is(myStore.getCount(), 0, 'Records via count');
+          t.is(myStore.allData.length, 0, 'All records removed');
+          t.is(myStore.getTotalCount(), 0, 'Records via getTotalCount');
+          next();
+        }
+      },
+      {
+        // Set up for next test, clear everything out and reload
+        action: function(next) {
+          myStore.sorters.clear();
+          myStore.loadRawData(myData);
+          myStore.loadPage(1);
+          next();
+        }
+      },
+      {
+        action: function(next) {
+          setTimeout(next, 50);
+        }
+      },
+      {
+        action: function(next) {
+          t.is(myStore.data.length, 3, 'Store is paged');
+          t.is(myStore.allData.length, 10, 'All data is there');
+          t.is(myStore.getTotalCount(), 10, 'Total count looks at allData');
 
-				next();
-			}
-		},
-		{
-			action: function(next) {
-				myStore.loadRecords(myData);
-				t.is(myStore.data.length, 3, 'Store is paged');
-				t.is(myStore.allData.length, 10, 'All data is there');
-				t.is(myStore.getTotalCount(), 10, 'Total count looks at allData');
+          rec = myStore.last();
+          t.is(rec.get('name'), 'Lucious Jackson', '3rd record');
 
-				rec = myStore.last();
-				t.is(rec.get('name'), 'Lucious Jackson', '3rd record');
-
-				myStore.removeAll();
-				t.is(myStore.data.length, 0, 'Current page records removed');
-				t.is(myStore.getCount(), 0, 'Records via count');
-				t.is(myStore.allData.length, 0, 'All records removed');
-				t.is(myStore.getTotalCount(), 0, 'Records via getTotalCount');
-				next();
-			}
-		}
+          myStore.removeAll();
+          t.is(myStore.data.length, 0, 'Current page records removed');
+          t.is(myStore.getCount(), 0, 'Records via count');
+          t.is(myStore.allData.length, 0, 'All records removed');
+          t.is(myStore.getTotalCount(), 0, 'Records via getTotalCount');
+          next();
+        }
+      }
 	);
 
 });
