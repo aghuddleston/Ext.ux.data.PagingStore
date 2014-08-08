@@ -104,15 +104,7 @@ Ext.define('Ext.ux.data.PagingStore', {
 		if ((typeof start == 'number') && (typeof limit == 'number')) {
 			allData = this.data;
 			data = new Ext.util.MixedCollection(allData.allowFunctions, allData.getKey);
-			data.items = allData.items.slice(start, start + limit);
-			data.keys = allData.keys.slice(start, start + limit);
-			var len = data.length = data.items.length;
-			var map = {};
-			for (var i = 0; i < len; i++) {
-				var item = data.items[i];
-				map[data.getKey(item)] = item;
-			}
-			data.map = map;
+			data.addAll(allData.items.slice(start, start + limit));
 			me.allData = allData;
 			me.data = data;
 		}
