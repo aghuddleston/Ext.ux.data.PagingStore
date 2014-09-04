@@ -14,13 +14,13 @@ StartTest({
         pageSize: 3,
 	    lastOptions: {start: 0, limit: 3, page: 1},
 	    proxy: {
-			type: 'ajax',
-			url: 'artist.json',
-			reader: {
-				type: 'json',
-				root: 'rows'
-			}
-		}
+        type: 'ajax',
+        url: 'artist.json',
+        reader: {
+          type: 'json',
+          rootProperty: 'rows'
+        }
+      }
     });
 
 	var rec, recs;

@@ -112,136 +112,159 @@ Ext.define('Ext.ux.data.PagingStore', {
 
 	loadRecords: function (records, options) {
 		var me = this,
-			i = 0,
-			length = records.length,
-			start,
-			addRecords,
-			snapshot = me.snapshot,
-			allData = me.allData;
+        length = records.length,
+        data   = me.getData(),
+        addRecords, autoSort, skipSort, i,
+  			allData = me.allData;
 
 		if (options) {
-			start = options.start;
 			addRecords = options.addRecords;
 		}
 
+    skipSort = me.getRemoteSort() || !me.getSortOnLoad();
+    if (skipSort) {
+        autoSort = data.getAutoSort();
+        data.setAutoSort(false);
+    }
+
 		if (!addRecords) {
 			delete me.allData;
-			delete me.snapshot;
 			me.clearData(true);
 		} else if (allData) {
-			allData.addAll(records);
-		} else if (snapshot) {
-			snapshot.addAll(records);
+			allData.add(records);
 		}
 
-		me.data.addAll(records);
+    me.ignoreCollectionAdd = true;
+    me.callObservers('BeforeLoad');
+    data.add(records);
+    me.ignoreCollectionAdd = false;
 
 		if (!me.allData) {
 			me.applyPaging();
 		}
 
-		if (start !== undefined) {
-			for (; i < length; i++) {
-				records[i].index = start + i;
-				records[i].join(me);
-			}
-		} else {
-			for (; i < length; i++) {
-				records[i].join(me);
-			}
-		}
+    for (i = 0; i < length; i++) {
+        records[i].join(me);
+    }
 
-		/*
-		 * this rather inelegant suspension and resumption of events is required because both the filter and sort functions
-		 * fire an additional datachanged event, which is not wanted. Ideally we would do this a different way. The first
-		 * datachanged event is fired by the call to this.add, above.
-		 */
-		me.suspendEvents();
-
-		if (me.filterOnLoad && !me.remoteFilter) {
-			me.filter();
-		}
-
-		if (me.sortOnLoad && !me.remoteSort) {
-			me.sort(undefined, undefined, undefined, true);
-		}
-
-		me.resumeEvents();
-		me.fireEvent('datachanged', me);
-		me.fireEvent('refresh', me);
+    if (skipSort) {
+        data.setAutoSort(autoSort);
+    }
+    ++me.loadCount;
+    me.complete = true;
+    me.fireEvent('datachanged', me);
+    me.fireEvent('refresh', me);
+    me.callObservers('AfterLoad');
 	},
 
 	loadData: function (data, append) {
-		var me = this,
-			model = me.model,
-			length = data.length,
-			newData = [],
-			i,
-			record;
+    var length = data.length,
+        newData = [],
+        i;
 
-		me.isPaging(Ext.apply({}, this.lastOptions ? this.lastOptions : {}));
+    this.isPaging(Ext.apply({}, this.lastOptions ? this.lastOptions : {}));
 
-		//make sure each data element is an Ext.data.Model instance
-		for (i = 0; i < length; i++) {
-			record = data[i];
+    //make sure each data element is an Ext.data.Model instance
+    for (i = 0; i < length; i++) {
+        newData.push(this.createModel(data[i]));
+    }
 
-			if (!(record.isModel)) {
-				record = Ext.ModelManager.create(record, model);
-			}
-			newData.push(record);
-		}
-
-		me.loadRecords(newData, append ? me.addRecordsOptions : undefined);
+    this.loadRecords(newData, append ? this.addRecordsOptions : undefined);
 	},
 
 	loadRawData: function (data, append) {
-		var me = this,
-			result = me.proxy.reader.read(data),
-			records = result.records;
+    var me      = this,
+        session = me.getSession(),
+        result  = me.getProxy().getReader().read(data, session ? {
+            recordCreator: session.recordCreator
+        } : undefined),
+        records = result.getRecords(),
+        success = result.getSuccess();
 
-		if (result.success) {
-			me.totalCount = result.total;
-			me.isPaging(Ext.apply({}, this.lastOptions ? this.lastOptions : {}));
-			me.loadRecords(records, append ? me.addRecordsOptions : undefined);
-			me.fireEvent('load', me, records, true);
-		}
+    if (success) {
+        me.totalCount = result.getTotal();
+        me.isPaging(Ext.apply({}, this.lastOptions ? this.lastOptions : {}));
+        me.loadRecords(records, append ? me.addRecordsOptions : undefined);
+    }
+    return success;
 	},
 
 	load: function (options) {
 		var me = this,
-			pagingOptions;
+        pageSize = me.getPageSize(),
+        session,
+		    pagingOptions;
 
 		options = options || {};
 
-		if (typeof options == 'function') {
-			options = {
-				callback: options
-			};
-		}
+    if (typeof options === 'function') {
+        options = {
+            callback: options
+        };
+    } else {
+        options = Ext.apply({}, options);
+    }
 
-		options.groupers = options.groupers || me.groupers.items;
-		options.page = options.page || me.currentPage;
-		options.start = (options.start !== undefined) ? options.start : (options.page - 1) * me.pageSize;
-		options.limit = options.limit || me.pageSize;
-		options.addRecords = options.addRecords || false;
+    // Only add grouping options if grouping is remote
+    if (me.getRemoteSort() && !options.grouper && me.getGrouper()) {
+        options.grouper = me.getGrouper();
+    }
 
-		if (me.buffered) {
-			return me.loadToPrefetch(options);
-		}
-		var operation;
+    if (pageSize || 'start' in options || 'limit' in options || 'page' in options) {
+        options.page = options.page || me.currentPage;
+        options.start = (options.start !== undefined) ? options.start : (options.page - 1) * pageSize;
+        options.limit = options.limit || pageSize;
+    }
 
-		options = Ext.apply({
-			action: 'read',
-			filters: me.filters.items,
-			sorters: me.getSorters()
-		}, options);
-		me.lastOptions = options;
+    options.addRecords = options.addRecords || false;
 
-		operation = new Ext.data.Operation(options);
+    if (!options.recordCreator) {
+        session = me.getSession();
+        if (session) {
+            options.recordCreator = session.recordCreator;
+        }
+    }
+
+    // Prevent loads from being triggered while applying initial configs
+    if (this.isLoadBlocked()) {
+        return;
+    }
+
+    var proxy = me.getProxy(),
+        loadTask = me.loadTask,
+        operation = {
+            internalScope: me,
+            internalCallback: me.onProxyLoad
+        }, filters, sorters;
+
+
+    // Only add filtering and sorting options if those options are remote
+    if (me.getRemoteFilter()) {
+        filters = me.getFilters();
+        if (filters.getCount()) {
+            operation.filters = filters.getRange();
+        }
+    }
+    if (me.getRemoteSort()) {
+        sorters = me.getSorters();
+        if (sorters.getCount()) {
+            operation.sorters = sorters.getRange();
+        }
+        me.fireEvent('beforesort', me, operation.sorters);
+    }
+    Ext.apply(operation, options);
+    operation.scope = operation.scope || me;
+    me.lastOptions = operation;
+
+    operation = proxy.createOperation('read', operation);
 
 		if (me.fireEvent('beforeload', me, operation) !== false) {
-
 			me.loading = true;
+      if (loadTask) {
+          loadTask.cancel();
+          me.loadTask = null;
+      }
+
 			pagingOptions = Ext.apply({}, options);
 			if (me.isPaging(pagingOptions)) {
 				Ext.Function.defer(function () {
@@ -266,52 +289,39 @@ Ext.define('Ext.ux.data.PagingStore', {
 				return me;
 			}
 
-			me.proxy.read(operation, me.onProxyLoad, me);
+      operation.execute();
 		}
 
 		return me;
 	},
 
 	insert: function (index, records) {
-		var me = this,
-			sync = false,
-			i,
-			record,
-			len;
+    var me = this,
+        len, i;
 
-		records = [].concat(records);
-		for (i = 0, len = records.length; i < len; i++) {
-			record = me.createModel(records[i]);
-			record.set(me.modelDefaults);
-			// reassign the model in the array in case it wasn't created yet
-			records[i] = record;
+    if (records) {
+        if (!Ext.isIterable(records)) {
+            records = [records];
+        } else {
+            records = Ext.Array.clone(records);
+        }
+        len = records.length;
+    }
 
-			me.data.insert(index + i, record);
-			record.join(me);
+    if (!len) {
+        return [];
+    }
 
-			sync = sync || record.phantom === true;
-		}
+    for (i = 0; i < len; ++i) {
+        records[i] = me.createModel(records[i]);
+    }
 
-		if (me.allData) {
-			me.allData.addAll(records);
-		}
+    me.getData().insert(index, records);
+    if (me.allData) {
+      me.allData.add(records);
+    }
+    return records;
 
-		if (me.snapshot) {
-			me.snapshot.addAll(records);
-		}
-
-		if (me.requireSort) {
-			// suspend events so the usual data changed events don't get fired.
-			me.suspendEvents();
-			me.sort();
-			me.resumeEvents();
-		}
-
-		me.fireEvent('add', me, records, index);
-		me.fireEvent('datachanged', me);
-		if (me.autoSync && sync && !me.autoSyncSuspended) {
-			me.sync();
-		}
 	},
 
 	doSort: function (sorterFn) {
@@ -371,118 +381,68 @@ Ext.define('Ext.ux.data.PagingStore', {
 	},
 
 	remove: function (records, /* private */ isMove) {
-		if (!Ext.isArray(records)) {
-			records = [records];
-		}
+    var me = this,
+        data = me.getData(),
+        len, i, toRemove, record;
 
-		/*
-		 * Pass the isMove parameter if we know we're going to be re-inserting this record
-		 */
-		isMove = isMove === true;
-		var me = this,
-			sync = false,
-			i = 0,
-			length = records.length,
-			isNotPhantom,
-			index,
-			record;
+    if (records) {
+        if (records.isModel) {
+            if (me.indexOf(records) > -1) {
+                toRemove = [records];
+                len = 1;
+            } else {
+                len = 0;
+            }
+        } else {
+            toRemove = [];
+            for (i = 0, len = records.length; i < len; ++i) {
+                record = records[i];
 
-		for (; i < length; i++) {
-			record = records[i];
-			index = me.data.indexOf(record);
+                if (record && record.isEntity) {
+                    if (!data.contains(record)) {
+                        continue;
+                    }
+                } else if (!(record = data.getAt(record))) { // an index
+                    continue;
+                }
 
-			if (me.allData) {
-				me.allData.remove(record);
-			}
+                toRemove.push(record);
+            }
 
-			if (me.snapshot) {
-				me.snapshot.remove(record);
-			}
+            len = toRemove.length;
+        }
+    }
 
-			if (index > -1) {
-				isNotPhantom = record.phantom !== true;
+    if (!len) {
+        return [];
+    }
 
-				// don't push phantom records onto removed
-				if (!isMove && isNotPhantom) {
-
-					// Store the index the record was removed from so that rejectChanges can re-insert at the correct place.
-					// The record's index property won't do, as that is the index in the overall dataset when Store is buffered.
-					record.removedFrom = index;
-					me.removed.push(record);
-				}
-
-				record.unjoin(me);
-				me.data.remove(record);
-				sync = sync || isNotPhantom;
-
-				me.fireEvent('remove', me, record, index);
-			}
-		}
-
-		me.fireEvent('datachanged', me);
-		if (!isMove && me.autoSync && sync && !me.autoSyncSuspended) {
-			me.sync();
-		}
+    me.removeIsMove = isMove === true;
+    me.removeIsSilent = silent;
+    data.remove(toRemove);
+    if (me.allData) {
+      me.allData.remove(toRemove);
+    }
+    me.removeIsSilent = false;
+    return toRemove;
 	},
 
 	filter: function (filters, value) {
-		if (Ext.isString(filters)) {
-			filters = {
-				property: filters,
-				value: value
-			};
-		}
+    if (Ext.isString(filters)) {
+        filters = {
+            property: filters,
+            value: value
+        };
+    }
+    this.getFilters().add(filters);
 
-		var me = this,
-			decoded = me.decodeFilters(filters),
-			i = 0,
-			doLocalSort = me.sorters.length && me.sortOnFilter && !me.remoteSort,
-			length = decoded.length;
+//    if (me.allData) {
+//      me.data = me.allData;
+//      delete me.allData;
+//    }
+//    me.data = me.data.filter(me.filters.items);
+//    me.applyPaging();
 
-		for (; i < length; i++) {
-			me.filters.replace(decoded[i]);
-		}
-
-		if (me.remoteFilter) {
-			// So that prefetchPage does not consider the store to be fully loaded if the local count is equal to the total count
-			delete me.totalCount;
-
-			// For a buffered Store, we have to clear the prefetch cache because the dataset will change upon filtering.
-			// Then we must prefetch the new page 1, and when that arrives, reload the visible part of the Store
-			// via the guaranteedrange event
-			if (me.buffered) {
-				me.pageMap.clear();
-				me.loadPage(1);
-			} else {
-				// Reset to the first page, the filter is likely to produce a smaller data set
-				me.currentPage = 1;
-				//the load function will pick up the new filters and request the filtered data from the proxy
-				me.load();
-			}
-		} else {
-			/**
-			 * @property {Ext.util.MixedCollection} snapshot
-			 * A pristine (unfiltered) collection of the records in this store. This is used to reinstate
-			 * records when a filter is removed or changed
-			 */
-			if (me.filters.getCount()) {
-				me.snapshot = me.snapshot || me.allData.clone() || me.data.clone();
-				if (me.allData) {
-					me.data = me.allData;
-					delete me.allData;
-				}
-				me.data = me.data.filter(me.filters.items);
-				me.applyPaging();
-
-				if (doLocalSort) {
-					me.sort();
-				} else {
-					// fire datachanged event if it hasn't already been fired by doSort
-					me.fireEvent('datachanged', me);
-					me.fireEvent('refresh', me);
-				}
-			}
-		}
 	},
 
 	clearFilter: function (suppressEvent) {

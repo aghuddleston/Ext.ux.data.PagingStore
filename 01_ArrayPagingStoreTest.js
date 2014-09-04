@@ -28,7 +28,8 @@ StartTest({
         proxy: {
             type: 'memory',
             reader: {
-                type: 'array'
+                type: 'array',
+                model: 'Artist'
             }
         },
 	      data: myData
