@@ -4,7 +4,7 @@ Harness.configure({
     title       : 'Ext.ux.data.PagingStore Test Suite',
     preload     : [
 	    { text : 'console.log("begin main preloading");' },
-      "http://cdn.sencha.com/ext/gpl/5.0.0/build/ext-all-debug.js",
+      "http://cdn.sencha.com/ext/gpl/5.0.1/build/ext-all-debug.js",
 		  './Ext.ux.data.PagingStore.js',
 	    { text : 'console.log("finishing preloading");' }
     ]

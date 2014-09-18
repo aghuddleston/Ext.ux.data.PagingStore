@@ -87,12 +87,12 @@ StartTest({
 				t.is(rec.get('name'), 'Jack Johnson', 'sorted first record on page 2');
 
 				myStore.filter('genre', 'Rock');
-				t.is(myStore.data.length, 3, '3 records on current page');
-				t.is(myStore.allData.length, 8, '8 recs left in filter');
+				t.is(myStore.data.length, 3, 'filter by genre: 3 records on current page');
+				t.is(myStore.allData.length, 8, 'filter by genre: 8 recs left in filter');
 
 				myStore.clearFilter();
-				t.is(myStore.data.length, 3, '3 records on current page');
-				t.is(myStore.allData.length, 12, 'All data is there');
+				t.is(myStore.data.length, 3, 'clear filter: 3 records on current page');
+				t.is(myStore.allData.length, 12, 'clear filter: All data is there');
 
 				myStore.loadPage(1);
 				t.is(myStore.currentPage, 1, 'Go back to page 1');
@@ -103,12 +103,12 @@ StartTest({
 					var genre = rec.get('genre');
 					return (genre === 'Rock');
 				});
-				t.is(myStore.currentPage, 1, 'Current page is 1');
-				t.is(myStore.data.length, 3, '3 records on current page');
-				t.is(myStore.allData.length, 8, '8 recs left in filter');
-				t.is(myStore.getTotalCount(), 8, 'Records via getTotalCount');
+				t.is(myStore.currentPage, 1, 'filterBy: Current page is 1');
+				t.is(myStore.data.length, 3, 'filterBy: 3 records on current page');
+				t.is(myStore.allData.length, 8, 'filterBy: 8 recs left in filter');
+				t.is(myStore.getTotalCount(), 8, 'filterBy: Records via getTotalCount');
 				rec = myStore.first();
-				t.is(rec.get('name'), 'Atlas Genius', 'filtered first record on page 1');
+				t.is(rec.get('name'), 'Atlas Genius', 'filterBy: filtered first record on page 1');
 
 				myStore.nextPage();
 				next();

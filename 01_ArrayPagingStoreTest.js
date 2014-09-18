@@ -25,14 +25,12 @@ StartTest({
     var myStore = Ext.create('Ext.ux.data.PagingStore', {
         model: 'Artist',
         pageSize: 3,
+        lastOptions: {start: 0, limit: 3, page: 1},
         proxy: {
             type: 'memory',
-            reader: {
-                type: 'array',
-                model: 'Artist'
-            }
+            reader: 'array'
         },
-	      data: myData
+	    data: myData
     });
 
 	var rec, recs;
@@ -81,15 +79,15 @@ StartTest({
 				t.is(recs.length, 2, '2 modified records');
 
 				myStore.sort('name', 'ASC');
-				t.is(myStore.currentPage, 2, 'Current page is still 2');
-				t.is(myStore.data.length, 3, '3 records on current page');
-				t.is(myStore.allData.length, 12, 'All data is there');
+				t.is(myStore.currentPage, 2, 'sort: Current page is still 2');
+				t.is(myStore.data.length, 3, 'sort: 3 records on current page');
+				t.is(myStore.allData.length, 12, 'sort: All data is there');
 				rec = myStore.first();
 				t.is(rec.get('name'), 'Jack Johnson', 'sorted first record on page 2');
 
 				myStore.filter('genre', 'Rock');
-				t.is(myStore.data.length, 3, '3 records on current page');
-				t.is(myStore.allData.length, 8, '8 recs left in filter');
+				t.is(myStore.data.length, 3, 'filter genre:3 records on current page');
+				t.is(myStore.allData.length, 8, 'filter genre: 8 recs left in filter');
 
 				myStore.clearFilter();
 				t.is(myStore.data.length, 3, '3 records on current page');
