@@ -268,25 +268,18 @@ Ext.define('Ext.ux.data.PagingStore', {
 
             pagingOptions = Ext.apply({}, options);
             if (me.isPaging(pagingOptions)) {
-                Ext.Function.defer(function () {
-                    if (me.allData) {
-                        me.data = me.allData;
-                        delete me.allData;
-                    }
-                    me.applyPaging();
-                    me.fireEvent("datachanged", me);
-                    me.fireEvent('refresh', me);
-                    var r = [].concat(me.data.items);
-                    me.loading = false;
-                    me.fireEvent("load", me, r, true);
-                    if (me.hasListeners.read) {
-                        me.fireEvent('read', me, r, true);
-                    }
-
-                    if (options.callback) {
-                        options.callback.call(options.scope || me, r, options, true);
-                    }
-                }, 1, me);
+                if (me.allData) {
+                    me.data = me.allData;
+                    delete me.allData;
+                }
+                me.applyPaging();
+                me.fireEvent('datachanged', me);
+                me.fireEvent('refresh', me);
+                me.callObservers('AfterLoad');
+                me.loading = false;
+                if (me.hasListeners.load) {
+                    me.fireEvent('load', me, me.getData(), true, operation);
+                }
                 return me;
             }
 
@@ -457,6 +450,24 @@ Ext.define('Ext.ux.data.PagingStore', {
             delete me.allData;
         }
         me.callParent(arguments);
+    },
+
+    resetToAllData: function () {
+        var me = this;
+        if (me.allData) {
+            me.data = me.allData;
+            delete me.allData;
+        }
+    },
+
+    addFilter: function(filters) {
+        this.resetToAllData();
+        this.callParent(arguments);
+    },
+
+    removeFilter: function(filter) {
+        this.resetToAllData();
+        this.callParent(arguments);
     },
 
     queryBy: function (fn, scope) {
