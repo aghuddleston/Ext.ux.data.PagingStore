@@ -244,25 +244,23 @@ Ext.define('Ext.ux.data.PagingStore', {
 			me.loading = true;
 			pagingOptions = Ext.apply({}, options);
 			if (me.isPaging(pagingOptions)) {
-				Ext.Function.defer(function () {
-					if (me.allData) {
-						me.data = me.allData;
-						delete me.allData;
-					}
-					me.applyPaging();
-					me.fireEvent("datachanged", me);
-					me.fireEvent('refresh', me);
-					var r = [].concat(me.data.items);
-					me.loading = false;
-					me.fireEvent("load", me, r, true);
-					if (me.hasListeners.read) {
-						me.fireEvent('read', me, r, true);
-					}
+                if (me.allData) {
+                    me.data = me.allData;
+                    delete me.allData;
+                }
+                me.applyPaging();
+                me.fireEvent("datachanged", me);
+                me.fireEvent('refresh', me);
+                var r = [].concat(me.data.items);
+                me.loading = false;
+                me.fireEvent("load", me, r, true);
+                if (me.hasListeners.read) {
+                    me.fireEvent('read', me, r, true);
+                }
 
-					if (options.callback) {
-						options.callback.call(options.scope || me, r, options, true);
-					}
-				}, 1, me);
+                if (options.callback) {
+                    options.callback.call(options.scope || me, r, options, true);
+                }
 				return me;
 			}
 
@@ -466,9 +464,9 @@ Ext.define('Ext.ux.data.PagingStore', {
 			 * records when a filter is removed or changed
 			 */
 			if (me.filters.getCount()) {
-				me.snapshot = me.snapshot || me.allData.clone() || me.data.clone();
-				if (me.allData) {
-					me.data = me.allData;
+				me.snapshot = me.snapshot || (me.allData && me.allData.clone()) || me.data.clone();
+				if (me.snapshot) {
+					me.data = me.snapshot;
 					delete me.allData;
 				}
 				me.data = me.data.filter(me.filters.items);

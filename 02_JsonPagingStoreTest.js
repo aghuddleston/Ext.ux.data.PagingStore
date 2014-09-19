@@ -23,7 +23,7 @@ StartTest({
 		}
     });
 
-	var rec, recs;
+	var rec, recs, regexFilter;
 
 	t.chain(
 		{
@@ -89,6 +89,25 @@ StartTest({
 				myStore.filter('genre', 'Rock');
 				t.is(myStore.data.length, 3, '3 records on current page');
 				t.is(myStore.allData.length, 8, '8 recs left in filter');
+
+                regexFilter = new Ext.util.Filter({
+                    property: 'name',
+                    anyMatch: true,
+                    value: 'Ja',
+                    root: 'data'
+                });
+                myStore.addFilter(regexFilter);
+                t.is(myStore.data.length, 0, 'addFilter: no records on page 2');
+   				t.is(myStore.allData.length, 3, 'addFilter: 3 recs left in filter');
+
+                myStore.loadPage(1);
+                t.is(myStore.data.length, 3, 'addFilter: 3 records on page 1');
+   				t.is(myStore.allData.length, 3, 'addFilter: 3 recs left in filter');
+                t.is(rec.get('name'), 'Jack Johnson', 'sorted first record on page 1');
+
+                myStore.removeFilter(regexFilter);
+                t.is(myStore.data.length, 3, 'removeFilter: 3 records on page 1');
+   				t.is(myStore.allData.length, 8, 'removeFilter: 8 recs left in filter');
 
 				myStore.clearFilter();
 				t.is(myStore.data.length, 3, '3 records on current page');
