@@ -10,3 +10,5 @@ There are enough changes between 4.1, 4.2 and 5.x that there are now three branc
 
 
 All three branches pass the unit tests.  The project is now "self-contained" and you should be able to pull down the project and run the tests yourself.
+
+You can see the test runner and run the tests for master (Ext JS 4.1) at http://aghuddleston.github.io/Ext.ux.data.PagingStore/
