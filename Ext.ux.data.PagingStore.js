@@ -337,6 +337,12 @@ Ext.define('Ext.ux.data.PagingStore', {
 				delete me.allData;
 			}
 			me.data.sortBy(sorterFn);
+			// Apply sorting function to snapshot collection accordingly so that sorting stays intact for
+			// pagination which creates slices from snapshot data on page loads. Same thing with filter clear
+			// events where store data is restored from current snapshot as well.
+			if (me.snapshot) {
+			  me.snapshot.sortBy(sorterFn);
+			}
 			if (!me.buffered) {
 				range = me.getRange();
 				ln = range.length;
